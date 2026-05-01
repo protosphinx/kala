@@ -26,15 +26,15 @@ This crate ships them carefully — same trait, same testing rigor, same `Ord` s
 | v   | Surface                                          | Status |
 |-----|--------------------------------------------------|--------|
 | 0.0 | Lamport + HLC, full `Ord`, monotonicity tests    | **shipped** |
-| 0.1 | Interval Tree Clock (fork / event / join)        | next   |
-| 0.2 | Vector clock (for completeness + benchmarking)   |        |
+| 0.1 | Vector clock with `PartialOrd::None` for concurrent stamps | **shipped** |
+| 0.2 | Interval Tree Clock (fork / event / join)        | next   |
 | 0.3 | Loom-checked monotonicity under concurrent ops   |        |
 | 0.4 | TLA+ proof obligations + machine-checked proofs  |        |
 
 ## Use
 
 ```rust
-use kala::{Hlc, Lamport};
+use kala::{Hlc, Lamport, VectorClock};
 
 // Lamport — happens-before via send / merge.
 let mut p = Lamport::new();
@@ -47,6 +47,13 @@ assert!(stamp < q.tick());
 let mut clock = Hlc::new(now_ms());
 let send = clock.send(now_ms());
 clock.recv(remote_hlc, now_ms());
+
+// Vector clock — concurrent events are *incomparable*, not tie-broken.
+let mut p = VectorClock::new(2);
+let mut q = VectorClock::new(2);
+p.tick(0);
+q.tick(1);
+assert_eq!(p.partial_cmp(&q), None);  // concurrent
 ```
 
 ## License

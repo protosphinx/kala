@@ -7,17 +7,19 @@ Sequenced milestones to a complete distributed-time toolkit.
 - `Lamport`: tick / merge / `Ord`. Tests for strict monotonicity and happens-before.
 - `Hlc`: send / recv / `Ord`. Tests for the four merge-rule branches (eq pt; local-wins; remote-wins; now-wins).
 
-## v0.1 — Interval Tree Clock
+## v0.1 — Vector clock ✦ **shipped**
+
+- `VectorClock` over a fixed-size group: tick / merge / `join_no_tick`
+- `PartialOrd::partial_cmp` returns `None` for concurrent stamps
+- Tests: pointwise-max merge, happens-before across two and three nodes,
+  detection of concurrent ticks across non-communicating processes
+
+## v0.2 — Interval Tree Clock
 
 - `Itc` data type: stamp = (id-tree, event-tree)
 - `fork`, `event`, `join` (Almeida et al., 2008 §3)
 - Property tests: monotonicity, the *seed/peek/drop* fork-join laws
 - Worked example: dynamic-membership replicated counter
-
-## v0.2 — Vector clock
-
-- `Vec<u64>` per process, `Ord` returning `PartialOrd::None` for concurrent stamps
-- Mainly to benchmark: HLC vs ITC vs VC on a 100-node simulated network
 
 ## v0.3 — concurrency proofs
 
