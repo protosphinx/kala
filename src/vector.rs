@@ -35,6 +35,11 @@ impl VectorClock {
         }
     }
 
+    /// Construct from a raw count vector. Used by serialization.
+    pub fn from_counts(counts: Vec<u64>) -> Self {
+        Self { counts }
+    }
+
     pub fn n_nodes(&self) -> usize {
         self.counts.len()
     }

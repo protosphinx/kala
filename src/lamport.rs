@@ -18,6 +18,13 @@ impl Lamport {
         Self(0)
     }
 
+    /// Construct directly from a raw u64. Used by serialization; do not
+    /// use for ordinary clock state since it bypasses the happens-before
+    /// machinery.
+    pub const fn from_raw(raw: u64) -> Self {
+        Self(raw)
+    }
+
     /// Local event. Returns the new clock value.
     pub fn tick(&mut self) -> Self {
         self.0 += 1;

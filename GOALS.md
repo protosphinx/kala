@@ -47,12 +47,22 @@ Sequenced milestones to a complete distributed-time toolkit.
   concurrent writes (tiebreak fires), associative merge under max tiebreak,
   post-merge write strictly dominates both inputs
 
-## v0.6 - racy concurrency proofs
+## v0.6 - wire-format serialization ✦ **shipped**
+
+- `Wire` trait with `encode -> Vec<u8>` and
+  `decode(&[u8]) -> Option<(Self, &[u8])>`
+- Implementations for `Lamport`, `Hlc`, `VectorClock`, `Id`, `Event`, `Stamp`
+- Recursive ITC trees use tagged-union encoding
+- Tests: round-trip for every type incl. zero, max, post-fork stamps;
+  truncated input rejected; invalid tag rejected; concatenated decodes
+  leave correct remainder
+
+## v0.7 - racy concurrency proofs
 
 - `loom`-checked tests: HLC monotonicity under concurrent send/recv from multiple threads on the same clock
 - The "logical counter overflow" path under degenerate clock stalls
 
-## v0.7 - formal proofs
+## v0.8 - formal proofs
 
 - TLA+ specification of HLC matching the implementation
 - Machine-checked proof of the four properties: monotonicity, causality, bounded drift, eventual convergence
@@ -62,4 +72,5 @@ Sequenced milestones to a complete distributed-time toolkit.
 
 - Physical clock synchronization (NTP, PTP) - kala consumes a `now: u64`, never produces one
 - TrueTime / Spanner-style commit-wait - out of scope; consumers compose this on top
-- Serialization formats - `serde` is downstream and not a v0 concern
+- `serde` integration - the hand-rolled `Wire` format is what kala ships;
+  callers who want serde can wrap `encode`/`decode`
