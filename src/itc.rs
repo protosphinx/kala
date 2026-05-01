@@ -200,7 +200,7 @@ impl Event {
         match (self, other) {
             (Event::Leaf(a), Event::Leaf(b)) => Event::Leaf(a.max(b)),
             (Event::Leaf(n1), Event::Node(n2, l2, r2)) => Event::Node(
-                n1.max(0),
+                n1,
                 Box::new(Event::Leaf(0)),
                 Box::new(Event::Leaf(0)),
             )
