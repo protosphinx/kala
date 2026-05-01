@@ -155,4 +155,40 @@ mod tests {
 
         assert!(send < recv);
     }
+
+    #[test]
+    fn concurrent_two_thread_skewed_clocks_preserve_causality() {
+        use std::sync::mpsc::channel;
+        use std::thread;
+
+        let (tx_ab, rx_ab) = channel::<Hlc>();
+        let (tx_ba, rx_ba) = channel::<Hlc>();
+
+        let h_a = thread::spawn(move || {
+            let mut c = Hlc::new(1000);
+            let s1 = c.send(1000);
+            tx_ab.send(s1).unwrap();
+            let recv = rx_ba.recv().unwrap();
+            c.recv(recv, 1010);
+            let s2 = c.send(1020);
+            (s1, s2)
+        });
+        let h_b = thread::spawn(move || {
+            let mut c = Hlc::new(500);
+            let from_a = rx_ab.recv().unwrap();
+            c.recv(from_a, 510);
+            let s1 = c.send(520);
+            tx_ba.send(s1).unwrap();
+            let s2 = c.send(530);
+            (s1, s2)
+        });
+
+        let (a1, a2) = h_a.join().unwrap();
+        let (b1, b2) = h_b.join().unwrap();
+
+        assert!(a1 < b1, "a1 ({:?}) < b1 ({:?})", a1, b1);
+        assert!(b1 < a2);
+        assert!(a1 < a2);
+        assert!(b1 < b2);
+    }
 }

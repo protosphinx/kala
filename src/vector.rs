@@ -196,4 +196,73 @@ mod tests {
         assert_eq!(a.get(0), 1);
         assert_eq!(a.get(1), 1);
     }
+
+    #[test]
+    fn concurrent_three_node_communication_preserves_partial_order() {
+        use std::sync::mpsc::channel;
+        use std::thread;
+
+        let (tx_01, rx_01) = channel::<VectorClock>();
+        let (tx_12, rx_12) = channel::<VectorClock>();
+
+        let h0 = thread::spawn(move || {
+            let mut c = VectorClock::new(3);
+            c.tick(0);
+            let snapshot = c.clone();
+            tx_01.send(snapshot.clone()).unwrap();
+            snapshot
+        });
+        let h1 = thread::spawn(move || {
+            let mut c = VectorClock::new(3);
+            let from_0 = rx_01.recv().unwrap();
+            c.merge(&from_0, 1);
+            let snapshot = c.clone();
+            tx_12.send(snapshot.clone()).unwrap();
+            (from_0, snapshot)
+        });
+        let h2 = thread::spawn(move || {
+            let mut c = VectorClock::new(3);
+            let from_1 = rx_12.recv().unwrap();
+            c.merge(&from_1, 2);
+            (from_1, c)
+        });
+
+        let send_0 = h0.join().unwrap();
+        let (_, snap_1) = h1.join().unwrap();
+        let (_, final_2) = h2.join().unwrap();
+
+        use std::cmp::Ordering;
+        assert_eq!(send_0.partial_cmp(&snap_1), Some(Ordering::Less));
+        assert_eq!(snap_1.partial_cmp(&final_2), Some(Ordering::Less));
+        assert_eq!(send_0.partial_cmp(&final_2), Some(Ordering::Less));
+    }
+
+    #[test]
+    fn concurrent_disjoint_workers_remain_incomparable() {
+        use std::sync::Arc;
+        use std::sync::Mutex;
+        use std::thread;
+
+        let p = Arc::new(Mutex::new(VectorClock::new(2)));
+        let q = Arc::new(Mutex::new(VectorClock::new(2)));
+
+        let pp = Arc::clone(&p);
+        let qq = Arc::clone(&q);
+        let h_p = thread::spawn(move || {
+            for _ in 0..50 {
+                pp.lock().unwrap().tick(0);
+            }
+        });
+        let h_q = thread::spawn(move || {
+            for _ in 0..50 {
+                qq.lock().unwrap().tick(1);
+            }
+        });
+        h_p.join().unwrap();
+        h_q.join().unwrap();
+
+        let p_final = p.lock().unwrap().clone();
+        let q_final = q.lock().unwrap().clone();
+        assert_eq!(p_final.partial_cmp(&q_final), None);
+    }
 }

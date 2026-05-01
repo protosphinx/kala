@@ -32,12 +32,19 @@ Sequenced milestones to a complete distributed-time toolkit.
 - Tests: 32 sequential events under id=One produce a tree of depth <=6;
   16 events under a forked id stay balanced
 
-## v0.4 - concurrency proofs
+## v0.4 - concurrent handshake tests ✦ **shipped**
+
+- Lamport: two-thread send/reply chain; transitive happens-before holds
+- HLC: skewed-wall-clock two-thread handshake preserves causality
+- VectorClock: three-node chain via mpsc preserves partial order; disjoint
+  workers on shared Mutex<VectorClock> remain incomparable
+
+## v0.5 - racy concurrency proofs
 
 - `loom`-checked tests: HLC monotonicity under concurrent send/recv from multiple threads on the same clock
 - The "logical counter overflow" path under degenerate clock stalls
 
-## v0.5 - formal proofs
+## v0.6 - formal proofs
 
 - TLA+ specification of HLC matching the implementation
 - Machine-checked proof of the four properties: monotonicity, causality, bounded drift, eventual convergence

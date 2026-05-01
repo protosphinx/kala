@@ -81,4 +81,40 @@ mod tests {
         let recv = q.tick();
         assert!(send < recv);
     }
+
+    #[test]
+    fn concurrent_two_thread_handshake_preserves_happens_before() {
+        use std::sync::mpsc::channel;
+        use std::thread;
+
+        let (tx_ab, rx_ab) = channel::<Lamport>();
+        let (tx_ba, rx_ba) = channel::<Lamport>();
+
+        let h_a = thread::spawn(move || {
+            let mut c = Lamport::new();
+            let s1 = c.tick();
+            tx_ab.send(s1).unwrap();
+            let received = rx_ba.recv().unwrap();
+            c.merge(received);
+            let s2 = c.tick();
+            (s1, s2)
+        });
+        let h_b = thread::spawn(move || {
+            let mut c = Lamport::new();
+            let received = rx_ab.recv().unwrap();
+            c.merge(received);
+            let s1 = c.tick();
+            tx_ba.send(s1).unwrap();
+            let s2 = c.tick();
+            (s1, s2)
+        });
+
+        let (a1, a2) = h_a.join().unwrap();
+        let (b1, b2) = h_b.join().unwrap();
+
+        assert!(a1 < b1, "a1 ({:?}) < b1 ({:?})", a1, b1);
+        assert!(b1 < a2, "b1 ({:?}) < a2 ({:?})", b1, a2);
+        assert!(a1 < a2);
+        assert!(b1 < b2);
+    }
 }
