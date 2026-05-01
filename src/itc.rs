@@ -264,37 +264,74 @@ fn fill(id: &Id, e: Event) -> Event {
     }
 }
 
-/// Grow the event tree under the id by at least one new event. Uses a
-/// leftmost-path heuristic; the cost-balanced grow lands at v0.3.
-fn grow(id: &Id, e: Event) -> Event {
+/// Grow the event tree under the id by at least one new event.
+///
+/// v0.3 ships the **cost-balanced** variant from the ITC paper (Almeida,
+/// Baquero, Fonte, 2008, §6). Each recursive call returns `(event, cost)`
+/// where `cost` measures the depth of the grow point. When two subtrees
+/// are eligible, the lower-cost path wins, which keeps the event tree
+/// approximately balanced over many `event()` operations.
+///
+/// Without this heuristic, repeatedly growing along the same path (the
+/// v0.2 leftmost-path policy) produces a tree of depth `Θ(N)` after `N`
+/// events. With cost balancing, the tree stays at depth `Θ(log N)`.
+const LEAF_EXPANSION_PENALTY: u32 = 1_000_000;
+
+fn grow(id: &Id, e: &Event) -> (Event, u32) {
     match (id, e) {
-        (Id::One, Event::Leaf(n)) => Event::Leaf(n + 1),
         (Id::Zero, _) => panic!("cannot grow under Id::Zero"),
+        (Id::One, Event::Leaf(n)) => (Event::Leaf(n + 1), 0),
         (Id::One, Event::Node(n, l, r)) => {
-            // Grow into left subtree as a default policy.
-            let l = grow(&Id::One, *l);
-            Event::Node(n, Box::new(l), r).normalized()
+            let (l_grown, cl) = grow(&Id::One, l);
+            let (r_grown, cr) = grow(&Id::One, r);
+            if cl <= cr {
+                (
+                    Event::node(*n, l_grown, (**r).clone()).normalized(),
+                    cl + 1,
+                )
+            } else {
+                (
+                    Event::node(*n, (**l).clone(), r_grown).normalized(),
+                    cr + 1,
+                )
+            }
         }
-        (Id::Node(il, ir), Event::Leaf(n)) => grow(
-            &Id::Node(il.clone(), ir.clone()),
-            Event::Node(
-                n,
-                Box::new(Event::Leaf(0)),
-                Box::new(Event::Leaf(0)),
-            ),
-        ),
+        (Id::Node(_, _), Event::Leaf(n)) => {
+            let (e_grown, c) = grow(
+                id,
+                &Event::node(*n, Event::Leaf(0), Event::Leaf(0)),
+            );
+            (e_grown, c + LEAF_EXPANSION_PENALTY)
+        }
         (Id::Node(il, ir), Event::Node(n, l, r)) => match (&**il, &**ir) {
             (Id::Zero, _) => {
-                let r = grow(ir, *r);
-                Event::Node(n, l, Box::new(r)).normalized()
+                let (r_grown, cr) = grow(ir, r);
+                (
+                    Event::node(*n, (**l).clone(), r_grown).normalized(),
+                    cr + 1,
+                )
             }
             (_, Id::Zero) => {
-                let l = grow(il, *l);
-                Event::Node(n, Box::new(l), r).normalized()
+                let (l_grown, cl) = grow(il, l);
+                (
+                    Event::node(*n, l_grown, (**r).clone()).normalized(),
+                    cl + 1,
+                )
             }
             _ => {
-                let l = grow(il, *l);
-                Event::Node(n, Box::new(l), r).normalized()
+                let (l_grown, cl) = grow(il, l);
+                let (r_grown, cr) = grow(ir, r);
+                if cl <= cr {
+                    (
+                        Event::node(*n, l_grown, (**r).clone()).normalized(),
+                        cl + 1,
+                    )
+                } else {
+                    (
+                        Event::node(*n, (**l).clone(), r_grown).normalized(),
+                        cr + 1,
+                    )
+                }
             }
         },
     }
@@ -335,7 +372,7 @@ impl Stamp {
         let new_event = if filled.max_value() > event.max_value() {
             filled
         } else {
-            grow(&id, event)
+            grow(&id, &event).0
         };
         Stamp {
             id,
@@ -499,6 +536,48 @@ mod tests {
         // Node(3, Leaf(2), Leaf(2)) should collapse to Leaf(5).
         let e = Event::node(3, Event::Leaf(2), Event::Leaf(2)).normalized();
         assert_eq!(e, Event::Leaf(5));
+    }
+
+    /// Tree depth helper for the cost-balanced grow tests.
+    fn depth(e: &Event) -> usize {
+        match e {
+            Event::Leaf(_) => 0,
+            Event::Node(_, l, r) => 1 + depth(l).max(depth(r)),
+        }
+    }
+
+    #[test]
+    fn cost_balanced_grow_keeps_tree_logarithmic() {
+        // Under id=One, 32 events should produce a tree of depth ~log2(32)=5,
+        // not the linear chain that leftmost-path grow would build.
+        let mut s = Stamp::seed();
+        for _ in 0..32 {
+            s = s.event();
+        }
+        let d = depth(&s.event);
+        assert!(
+            d <= 6,
+            "cost-balanced grow expected depth <=6 after 32 events, got {}",
+            d
+        );
+    }
+
+    #[test]
+    fn cost_balanced_grow_under_split_id_stays_balanced() {
+        // After fork, alice's id is Node(One, Zero). Events go into the left.
+        // The left subtree should rebalance internally.
+        let s = Stamp::seed();
+        let (mut alice, _bob) = s.fork();
+        for _ in 0..16 {
+            alice = alice.event();
+        }
+        let d = depth(&alice.event);
+        // 1 (outer Node from id structure) + log2(16) = 5.
+        assert!(
+            d <= 6,
+            "expected balanced subtree, got depth {}",
+            d
+        );
     }
 
     #[test]

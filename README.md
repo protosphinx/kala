@@ -28,8 +28,9 @@ This crate ships them carefully - same trait, same testing rigor, same `Ord` sem
 | 0.0 | Lamport + HLC, full `Ord`, monotonicity tests    | **shipped** |
 | 0.1 | Vector clock with `PartialOrd::None` for concurrent stamps | **shipped** |
 | 0.2 | Interval Tree Clock (fork / event / join / leq)  | **shipped** |
-| 0.3 | Cost-balanced grow + Loom-checked monotonicity under concurrent ops | next |
-| 0.4 | TLA+ proof obligations + machine-checked proofs  |        |
+| 0.3 | Cost-balanced grow heuristic (logarithmic event-tree depth) | **shipped** |
+| 0.4 | Loom-checked monotonicity under concurrent ops   | next   |
+| 0.5 | TLA+ proof obligations + machine-checked proofs  |        |
 
 ## Use
 
