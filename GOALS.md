@@ -1,0 +1,37 @@
+# GOALS — kala
+
+Sequenced milestones to a complete distributed-time toolkit.
+
+## v0.0 — Lamport + HLC ✦ **shipped**
+
+- `Lamport`: tick / merge / `Ord`. Tests for strict monotonicity and happens-before.
+- `Hlc`: send / recv / `Ord`. Tests for the four merge-rule branches (eq pt; local-wins; remote-wins; now-wins).
+
+## v0.1 — Interval Tree Clock
+
+- `Itc` data type: stamp = (id-tree, event-tree)
+- `fork`, `event`, `join` (Almeida et al., 2008 §3)
+- Property tests: monotonicity, the *seed/peek/drop* fork-join laws
+- Worked example: dynamic-membership replicated counter
+
+## v0.2 — Vector clock
+
+- `Vec<u64>` per process, `Ord` returning `PartialOrd::None` for concurrent stamps
+- Mainly to benchmark: HLC vs ITC vs VC on a 100-node simulated network
+
+## v0.3 — concurrency proofs
+
+- `loom`-checked tests: HLC monotonicity under concurrent send/recv from multiple threads on the same clock
+- The "logical counter overflow" path under degenerate clock stalls
+
+## v0.4 — formal proofs
+
+- TLA+ specification of HLC matching the implementation
+- Machine-checked proof of the four properties: monotonicity, causality, bounded drift, eventual convergence
+- A separate `proofs/` directory; `cargo test` and `tlc` both gate releases
+
+## Non-goals
+
+- Physical clock synchronization (NTP, PTP) — kala consumes a `now: u64`, never produces one
+- TrueTime / Spanner-style commit-wait — out of scope; consumers compose this on top
+- Serialization formats — `serde` is downstream and not a v0 concern
