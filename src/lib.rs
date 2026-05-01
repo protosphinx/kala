@@ -10,15 +10,19 @@
 //!   clock in this zoo whose `PartialOrd` actually returns `None` for
 //!   *concurrent* stamps - happens-before becomes a real partial order, not a
 //!   total one with tie-breaks.
-//! - `Itc` - Interval Tree Clock (Almeida et al., 2008). v0.2.
+//! - [`Stamp`] - Interval Tree Clock (Almeida, Baquero, Fonte, 2008). The
+//!   answer to "vector clocks, but for dynamic membership". Stamps fork,
+//!   record events, and join, all without a fixed node list.
 //!
 //! Each clock exposes a `tick`/`send` (local event) and a `merge`/`recv`
 //! (incoming event) and orders consistently with happens-before.
 
 pub mod hlc;
+pub mod itc;
 pub mod lamport;
 pub mod vector;
 
 pub use hlc::Hlc;
+pub use itc::{Event, Id, Stamp};
 pub use lamport::Lamport;
 pub use vector::VectorClock;
