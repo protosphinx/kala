@@ -30,8 +30,9 @@ This crate ships them carefully - same trait, same testing rigor, same `Ord` sem
 | 0.2 | Interval Tree Clock (fork / event / join / leq)  | **shipped** |
 | 0.3 | Cost-balanced grow heuristic (logarithmic event-tree depth) | **shipped** |
 | 0.4 | std::thread + mpsc concurrent-handshake tests across all clock types | **shipped** |
-| 0.5 | Loom-checked monotonicity under racy concurrent ops | next |
-| 0.6 | TLA+ proof obligations + machine-checked proofs  |        |
+| 0.5 | Worked CRDT example: ITC-stamped LWW register with concurrent-write tiebreak | **shipped** |
+| 0.6 | Loom-checked monotonicity under racy concurrent ops | next |
+| 0.7 | TLA+ proof obligations + machine-checked proofs  |        |
 
 ## Use
 

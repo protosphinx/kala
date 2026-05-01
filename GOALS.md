@@ -39,12 +39,20 @@ Sequenced milestones to a complete distributed-time toolkit.
 - VectorClock: three-node chain via mpsc preserves partial order; disjoint
   workers on shared Mutex<VectorClock> remain incomparable
 
-## v0.5 - racy concurrency proofs
+## v0.5 - worked CRDT example ✦ **shipped**
+
+- `LwwRegister<T>` over an ITC `Stamp` with `new`, `fork`, `write`, `merge`
+- Concurrent writes resolved via user-supplied tiebreak closure
+- Tests: linear chain (later wins), one-sided write (later stamp dominates),
+  concurrent writes (tiebreak fires), associative merge under max tiebreak,
+  post-merge write strictly dominates both inputs
+
+## v0.6 - racy concurrency proofs
 
 - `loom`-checked tests: HLC monotonicity under concurrent send/recv from multiple threads on the same clock
 - The "logical counter overflow" path under degenerate clock stalls
 
-## v0.6 - formal proofs
+## v0.7 - formal proofs
 
 - TLA+ specification of HLC matching the implementation
 - Machine-checked proof of the four properties: monotonicity, causality, bounded drift, eventual convergence

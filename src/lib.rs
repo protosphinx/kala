@@ -20,9 +20,11 @@
 pub mod hlc;
 pub mod itc;
 pub mod lamport;
+pub mod lww;
 pub mod vector;
 
 pub use hlc::Hlc;
 pub use itc::{Event, Id, Stamp};
 pub use lamport::Lamport;
+pub use lww::LwwRegister;
 pub use vector::VectorClock;
