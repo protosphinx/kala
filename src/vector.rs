@@ -12,7 +12,7 @@
 //!
 //! The point of paying `O(n)` per stamp: vector clocks capture happens-before
 //! *exactly*. Two stamps `a` and `b` are concurrent iff neither dominates the
-//! other component-wise — and in that case [`PartialOrd::partial_cmp`]
+//! other component-wise - and in that case [`PartialOrd::partial_cmp`]
 //! returns `None`, which is the cleanest possible API for "we cannot order
 //! these events causally."
 //!

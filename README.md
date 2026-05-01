@@ -1,10 +1,10 @@
 <h1 align="center">kala</h1>
 
-<p align="center"><em>काल — time itself, as a Rust crate.</em></p>
+<p align="center"><em>काल - time itself, as a Rust crate.</em></p>
 
 ---
 
-Distributed-systems logical-time primitives. The full small-zoo: scalar Lamport clocks, Hybrid Logical Clocks, Interval Tree Clocks. One trait surface, three semantics, all with the property you actually want — *if `a` happens-before `b`, then `clock(a) < clock(b)`*.
+Distributed-systems logical-time primitives. The full small-zoo: scalar Lamport clocks, Hybrid Logical Clocks, Interval Tree Clocks. One trait surface, three semantics, all with the property you actually want - *if `a` happens-before `b`, then `clock(a) < clock(b)`*.
 
 ## Why a small zoo
 
@@ -17,9 +17,9 @@ There is no one right clock. The right clock is determined by what you are willi
 | **Vector clock**      | O(n) bytes  | yes (iff)   | yes                 | no               |
 | **Interval Tree**     | O(log n)    | yes (iff)   | yes                 | no               |
 
-Lamport is the substrate (Lamport, 1978). HLC is what you actually want for replicated databases (Kulkarni et al., 2014 — used in CockroachDB and YugabyteDB). ITC is the answer to "vector clocks but with reasonable size in dynamic membership" (Almeida et al., 2008).
+Lamport is the substrate (Lamport, 1978). HLC is what you actually want for replicated databases (Kulkarni et al., 2014 - used in CockroachDB and YugabyteDB). ITC is the answer to "vector clocks but with reasonable size in dynamic membership" (Almeida et al., 2008).
 
-This crate ships them carefully — same trait, same testing rigor, same `Ord` semantics — so you can pick by use case without rewriting anything around them.
+This crate ships them carefully - same trait, same testing rigor, same `Ord` semantics - so you can pick by use case without rewriting anything around them.
 
 ## Status
 
@@ -36,19 +36,19 @@ This crate ships them carefully — same trait, same testing rigor, same `Ord` s
 ```rust
 use kala::{Hlc, Lamport, VectorClock};
 
-// Lamport — happens-before via send / merge.
+// Lamport - happens-before via send / merge.
 let mut p = Lamport::new();
 let mut q = Lamport::new();
 let stamp = p.tick();
 q.merge(stamp);
 assert!(stamp < q.tick());
 
-// HLC — wall-clock-aware, survives skew.
+// HLC - wall-clock-aware, survives skew.
 let mut clock = Hlc::new(now_ms());
 let send = clock.send(now_ms());
 clock.recv(remote_hlc, now_ms());
 
-// Vector clock — concurrent events are *incomparable*, not tie-broken.
+// Vector clock - concurrent events are *incomparable*, not tie-broken.
 let mut p = VectorClock::new(2);
 let mut q = VectorClock::new(2);
 p.tick(0);

@@ -5,7 +5,7 @@
 //! Rule 3: on receive, set local to `max(local, received) + 1`.
 //!
 //! Property: if event `a` happens-before event `b`, then `clock(a) < clock(b)`.
-//! The converse does not hold — Lamport is a total order extending the partial
+//! The converse does not hold - Lamport is a total order extending the partial
 //! happens-before order. Concurrent events get arbitrary tie-breaks.
 
 use std::cmp::Ordering;

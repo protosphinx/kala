@@ -1,10 +1,10 @@
-//! Hybrid Logical Clock (Kulkarni, Demirbas, Madappa, Avva, Leone — 2014).
+//! Hybrid Logical Clock (Kulkarni, Demirbas, Madappa, Avva, Leone - 2014).
 //!
 //! Combines a physical timestamp `pt` with a logical counter `l` to preserve
 //! happens-before across causally related events while staying close to
 //! wall-clock time, even under bounded clock skew.
 //!
-//! The update rules — given local clock `(pt, l)`, a wall-clock reading `now`,
+//! The update rules - given local clock `(pt, l)`, a wall-clock reading `now`,
 //! and (on receive) a remote clock `(pt', l')`:
 //!
 //! ```text
@@ -49,7 +49,7 @@ impl Hlc {
             self.l = self
                 .l
                 .checked_add(1)
-                .expect("HLC logical counter overflow — clock has stalled for too long");
+                .expect("HLC logical counter overflow - clock has stalled for too long");
         } else {
             self.l = 0;
         }
@@ -100,9 +100,9 @@ mod tests {
     #[test]
     fn send_under_advancing_wallclock_resets_logical() {
         let mut c = Hlc::new(100);
-        c.send(100); // same pt — l ticks
+        c.send(100); // same pt - l ticks
         assert_eq!(c.l, 1);
-        c.send(200); // pt advances — l resets
+        c.send(200); // pt advances - l resets
         assert_eq!(c.pt, 200);
         assert_eq!(c.l, 0);
     }
@@ -110,7 +110,7 @@ mod tests {
     #[test]
     fn send_under_stalled_wallclock_increments_logical() {
         let mut c = Hlc::new(500);
-        c.send(400); // wall-clock behind — pt unchanged, l ticks
+        c.send(400); // wall-clock behind - pt unchanged, l ticks
         c.send(400);
         assert_eq!(c.pt, 500);
         assert_eq!(c.l, 2);
