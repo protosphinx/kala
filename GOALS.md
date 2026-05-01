@@ -57,12 +57,24 @@ Sequenced milestones to a complete distributed-time toolkit.
   truncated input rejected; invalid tag rejected; concatenated decodes
   leave correct remainder
 
-## v0.7 - racy concurrency proofs
+## v0.7 - causal broadcast simulator ✦ **shipped**
+
+- `Replica<T>` wraps a Stamp + payload with `fork`, `update`, `snapshot`,
+  `has_seen`, `deliver`
+- `Network<T>` simulates an N-replica async bus with `broadcast_to`,
+  `broadcast_all`, `deliver_at(idx)`, `drain_in_order`,
+  `drain_in_permutation`
+- Tests: fork-then-merge recovers state; `has_seen` filters redundant
+  messages; 3 replicas converge under max combiner; **delivery order
+  does not affect final state** (eventual consistency); redundant
+  redelivery is a no-op
+
+## v0.8 - racy concurrency proofs
 
 - `loom`-checked tests: HLC monotonicity under concurrent send/recv from multiple threads on the same clock
 - The "logical counter overflow" path under degenerate clock stalls
 
-## v0.8 - formal proofs
+## v0.9 - formal proofs
 
 - TLA+ specification of HLC matching the implementation
 - Machine-checked proof of the four properties: monotonicity, causality, bounded drift, eventual convergence

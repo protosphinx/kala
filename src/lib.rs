@@ -21,6 +21,7 @@ pub mod hlc;
 pub mod itc;
 pub mod lamport;
 pub mod lww;
+pub mod replica;
 pub mod vector;
 pub mod wire;
 
@@ -28,5 +29,6 @@ pub use hlc::Hlc;
 pub use itc::{Event, Id, Stamp};
 pub use lamport::Lamport;
 pub use lww::LwwRegister;
+pub use replica::{Message, Network, Replica};
 pub use vector::VectorClock;
 pub use wire::Wire;

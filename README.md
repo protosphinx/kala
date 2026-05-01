@@ -32,8 +32,9 @@ This crate ships them carefully - same trait, same testing rigor, same `Ord` sem
 | 0.4 | std::thread + mpsc concurrent-handshake tests across all clock types | **shipped** |
 | 0.5 | Worked CRDT example: ITC-stamped LWW register with concurrent-write tiebreak | **shipped** |
 | 0.6 | Wire-format serialization for every clock type incl. recursive ITC trees | **shipped** |
-| 0.7 | Loom-checked monotonicity under racy concurrent ops | next |
-| 0.8 | TLA+ proof obligations + machine-checked proofs  |        |
+| 0.7 | `Replica<T>` + `Network<T>` causal-broadcast simulator over ITC stamps | **shipped** |
+| 0.8 | Loom-checked monotonicity under racy concurrent ops | next |
+| 0.9 | TLA+ proof obligations + machine-checked proofs  |        |
 
 ## Use
 
