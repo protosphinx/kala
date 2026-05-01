@@ -27,8 +27,8 @@ This crate ships them carefully - same trait, same testing rigor, same `Ord` sem
 |-----|--------------------------------------------------|--------|
 | 0.0 | Lamport + HLC, full `Ord`, monotonicity tests    | **shipped** |
 | 0.1 | Vector clock with `PartialOrd::None` for concurrent stamps | **shipped** |
-| 0.2 | Interval Tree Clock (fork / event / join)        | next   |
-| 0.3 | Loom-checked monotonicity under concurrent ops   |        |
+| 0.2 | Interval Tree Clock (fork / event / join / leq)  | **shipped** |
+| 0.3 | Cost-balanced grow + Loom-checked monotonicity under concurrent ops | next |
 | 0.4 | TLA+ proof obligations + machine-checked proofs  |        |
 
 ## Use
@@ -54,6 +54,15 @@ let mut q = VectorClock::new(2);
 p.tick(0);
 q.tick(1);
 assert_eq!(p.partial_cmp(&q), None);  // concurrent
+
+// ITC - vector clocks for dynamic membership.
+use kala::Stamp;
+let s = Stamp::seed();
+let (alice, bob) = s.fork();
+let alice = alice.event();
+let (alice, msg) = alice.send();
+let bob = bob.receive(msg);
+assert_eq!(alice.partial_cmp(&bob), Some(std::cmp::Ordering::Less));
 ```
 
 ## License

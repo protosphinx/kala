@@ -14,14 +14,17 @@ Sequenced milestones to a complete distributed-time toolkit.
 - Tests: pointwise-max merge, happens-before across two and three nodes,
   detection of concurrent ticks across non-communicating processes
 
-## v0.2 - Interval Tree Clock
+## v0.2 - Interval Tree Clock ✦ **shipped**
 
-- `Itc` data type: stamp = (id-tree, event-tree)
-- `fork`, `event`, `join` (Almeida et al., 2008 §3)
-- Property tests: monotonicity, the *seed/peek/drop* fork-join laws
-- Worked example: dynamic-membership replicated counter
+- `Id` enum (Zero / One / Node) with split, sum, normalize
+- `Event` enum (Leaf / Node) with min-lift normalize, lift / sink, join, leq
+- `Stamp` with seed / fork / event / join / send / receive
+- `fill` and (leftmost-path) `grow` for the event() operation
+- Tests: fork-then-sum recovers full id, event increases max-value, join is
+  commutative and idempotent in event, happens-before implies less-than,
+  concurrent forks are incomparable, send/receive preserves causality
 
-## v0.3 - concurrency proofs
+## v0.3 - cost-balanced grow + concurrency proofs
 
 - `loom`-checked tests: HLC monotonicity under concurrent send/recv from multiple threads on the same clock
 - The "logical counter overflow" path under degenerate clock stalls
