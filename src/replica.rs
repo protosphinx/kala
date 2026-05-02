@@ -156,7 +156,7 @@ impl<T: Clone> Network<T> {
             self.replicas[to] = target;
             return false;
         }
-        self.replicas[to] = target.deliver(msg, |a, b| combine(a, b));
+        self.replicas[to] = target.deliver(msg, combine);
         true
     }
 

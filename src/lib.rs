@@ -25,6 +25,9 @@ pub mod replica;
 pub mod vector;
 pub mod wire;
 
+#[cfg(feature = "mcp")]
+pub mod mcp;
+
 pub use hlc::Hlc;
 pub use itc::{Event, Id, Stamp};
 pub use lamport::Lamport;
