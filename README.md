@@ -2,13 +2,15 @@
 
 <p align="center"><em>काल - time itself, as a Rust crate.</em></p>
 
+<p align="center">
+  <img src="https://img.shields.io/badge/tests-81%20passing-yellowgreen" alt="81 tests passing">
+</p>
+
 ---
 
 Distributed-systems logical-time primitives. The full small-zoo: scalar Lamport clocks, Hybrid Logical Clocks, Interval Tree Clocks. One trait surface, three semantics, all with the property you actually want - *if `a` happens-before `b`, then `clock(a) < clock(b)`*.
 
 ## Why a small zoo
-
-![tests](https://img.shields.io/badge/tests-81%20passing-yellowgreen)
 
 There is no one right clock. The right clock is determined by what you are willing to give up:
 
