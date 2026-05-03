@@ -88,10 +88,7 @@ impl Id {
     pub fn split(self) -> (Id, Id) {
         match self {
             Id::Zero => (Id::Zero, Id::Zero),
-            Id::One => (
-                Id::node(Id::One, Id::Zero),
-                Id::node(Id::Zero, Id::One),
-            ),
+            Id::One => (Id::node(Id::One, Id::Zero), Id::node(Id::Zero, Id::One)),
             Id::Node(l, r) => {
                 let (l, r) = (*l, *r);
                 match (l, r) {
@@ -113,9 +110,7 @@ impl Id {
     pub fn sum(self, other: Id) -> Id {
         match (self, other) {
             (Id::Zero, x) | (x, Id::Zero) => x,
-            (Id::Node(l1, r1), Id::Node(l2, r2)) => {
-                Id::node(l1.sum(*l2), r1.sum(*r2)).normalized()
-            }
+            (Id::Node(l1, r1), Id::Node(l2, r2)) => Id::node(l1.sum(*l2), r1.sum(*r2)).normalized(),
             (a, b) => panic!("overlapping ids in sum: {:?} and {:?}", a, b),
         }
     }
@@ -199,12 +194,10 @@ impl Event {
     pub fn join(self, other: Event) -> Event {
         match (self, other) {
             (Event::Leaf(a), Event::Leaf(b)) => Event::Leaf(a.max(b)),
-            (Event::Leaf(n1), Event::Node(n2, l2, r2)) => Event::Node(
-                n1,
-                Box::new(Event::Leaf(0)),
-                Box::new(Event::Leaf(0)),
-            )
-            .join(Event::Node(n2, l2, r2)),
+            (Event::Leaf(n1), Event::Node(n2, l2, r2)) => {
+                Event::Node(n1, Box::new(Event::Leaf(0)), Box::new(Event::Leaf(0)))
+                    .join(Event::Node(n2, l2, r2))
+            }
             (Event::Node(n1, l1, r1), Event::Leaf(n2)) => Event::Node(n1, l1, r1).join(
                 Event::Node(n2, Box::new(Event::Leaf(0)), Box::new(Event::Leaf(0))),
             ),
@@ -215,12 +208,7 @@ impl Event {
                     let d = n2 - n1;
                     let l2 = l2.lift(d);
                     let r2 = r2.lift(d);
-                    Event::Node(
-                        n1,
-                        Box::new(l1.join(l2)),
-                        Box::new(r1.join(r2)),
-                    )
-                    .normalized()
+                    Event::Node(n1, Box::new(l1.join(l2)), Box::new(r1.join(r2))).normalized()
                 }
             }
         }
@@ -285,52 +273,31 @@ fn grow(id: &Id, e: &Event) -> (Event, u32) {
             let (l_grown, cl) = grow(&Id::One, l);
             let (r_grown, cr) = grow(&Id::One, r);
             if cl <= cr {
-                (
-                    Event::node(*n, l_grown, (**r).clone()).normalized(),
-                    cl + 1,
-                )
+                (Event::node(*n, l_grown, (**r).clone()).normalized(), cl + 1)
             } else {
-                (
-                    Event::node(*n, (**l).clone(), r_grown).normalized(),
-                    cr + 1,
-                )
+                (Event::node(*n, (**l).clone(), r_grown).normalized(), cr + 1)
             }
         }
         (Id::Node(_, _), Event::Leaf(n)) => {
-            let (e_grown, c) = grow(
-                id,
-                &Event::node(*n, Event::Leaf(0), Event::Leaf(0)),
-            );
+            let (e_grown, c) = grow(id, &Event::node(*n, Event::Leaf(0), Event::Leaf(0)));
             (e_grown, c + LEAF_EXPANSION_PENALTY)
         }
         (Id::Node(il, ir), Event::Node(n, l, r)) => match (&**il, &**ir) {
             (Id::Zero, _) => {
                 let (r_grown, cr) = grow(ir, r);
-                (
-                    Event::node(*n, (**l).clone(), r_grown).normalized(),
-                    cr + 1,
-                )
+                (Event::node(*n, (**l).clone(), r_grown).normalized(), cr + 1)
             }
             (_, Id::Zero) => {
                 let (l_grown, cl) = grow(il, l);
-                (
-                    Event::node(*n, l_grown, (**r).clone()).normalized(),
-                    cl + 1,
-                )
+                (Event::node(*n, l_grown, (**r).clone()).normalized(), cl + 1)
             }
             _ => {
                 let (l_grown, cl) = grow(il, l);
                 let (r_grown, cr) = grow(ir, r);
                 if cl <= cr {
-                    (
-                        Event::node(*n, l_grown, (**r).clone()).normalized(),
-                        cl + 1,
-                    )
+                    (Event::node(*n, l_grown, (**r).clone()).normalized(), cl + 1)
                 } else {
-                    (
-                        Event::node(*n, (**l).clone(), r_grown).normalized(),
-                        cr + 1,
-                    )
+                    (Event::node(*n, (**l).clone(), r_grown).normalized(), cr + 1)
                 }
             }
         },
@@ -393,10 +360,13 @@ impl Stamp {
     pub fn send(self) -> (Stamp, Stamp) {
         let stamped = self.event();
         let (keep, send) = stamped.fork();
-        (keep, Stamp {
-            id: Id::Zero,
-            event: send.event,
-        })
+        (
+            keep,
+            Stamp {
+                id: Id::Zero,
+                event: send.event,
+            },
+        )
     }
 
     /// Receive: incorporates an incoming anonymous stamp into ours.
@@ -573,11 +543,7 @@ mod tests {
         }
         let d = depth(&alice.event);
         // 1 (outer Node from id structure) + log2(16) = 5.
-        assert!(
-            d <= 6,
-            "expected balanced subtree, got depth {}",
-            d
-        );
+        assert!(d <= 6, "expected balanced subtree, got depth {}", d);
     }
 
     #[test]

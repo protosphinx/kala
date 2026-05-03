@@ -133,7 +133,10 @@ mod tests {
 
         let max_tie = |a: i32, b: i32| a.max(b);
 
-        let by_left = r1.clone().merge(r2.clone(), max_tie).merge(r3.clone(), max_tie);
+        let by_left = r1
+            .clone()
+            .merge(r2.clone(), max_tie)
+            .merge(r3.clone(), max_tie);
         let by_right = r1.merge(r2.merge(r3, max_tie), max_tie);
         assert_eq!(by_left.value, by_right.value);
         assert_eq!(by_left.value, 30);
