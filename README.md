@@ -8,6 +8,8 @@ Distributed-systems logical-time primitives. The full small-zoo: scalar Lamport 
 
 ## Why a small zoo
 
+![tests](https://img.shields.io/badge/tests-81%20passing-yellowgreen)
+
 There is no one right clock. The right clock is determined by what you are willing to give up:
 
 | Clock                 | Size        | Captures HB | Detects concurrency | Wall-clock aware |
